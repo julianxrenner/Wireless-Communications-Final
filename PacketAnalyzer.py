@@ -1,10 +1,12 @@
 from scapy.all import IP, TCP, UDP
 
+
 class PacketAnalyzer:
     def __init__(self):
         pass
 
     def process_packet(self, packet):
+        # Extract relevant features from packet
         features = {
             "frame.len": len(packet),
             "frame.time_epoch": getattr(packet, "time", 0),
@@ -22,6 +24,7 @@ class PacketAnalyzer:
             "udp.length": packet[UDP].len if UDP in packet else 0,
         }
 
+        # Create a list of extracted values
         traffic = [
             features["frame.len"],
             features["frame.time_epoch"],
@@ -39,9 +42,12 @@ class PacketAnalyzer:
             features["udp.length"],
         ]
 
+        # Convert IP addresses to int format
         for i in [2, 3]:
             try:
-                traffic[i] = int("".join([f"{int(x):03d}" for x in traffic[i].split(".")]))
+                traffic[i] = int(
+                    "".join([f"{int(x):03d}" for x in traffic[i].split(".")])
+                )
             except:
                 traffic[i] = 0
 

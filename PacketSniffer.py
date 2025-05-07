@@ -17,7 +17,7 @@ class PacketSniffer:
                 iface=interface,
                 prn=self.packet_callback,
                 store=0,
-                timeout=30,
+                #timeout=10,
                 stop_filter=lambda _: self.stop_capture.is_set(),
             )
 

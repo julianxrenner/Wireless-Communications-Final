@@ -4,7 +4,7 @@ class PacketAnalyzer:
     def __init__(self):
         pass
 
-    def process_packet(packet):
+    def process_packet(self, packet):
         features = {
             "frame.len": len(packet),
             "frame.time_epoch": getattr(packet, "time", 0),
@@ -17,7 +17,6 @@ class PacketAnalyzer:
             "tcp.seq": packet[TCP].seq if TCP in packet else 0,
             "tcp.ack": packet[TCP].ack if TCP in packet else 0,
             "tcp.flags.syn": int(packet[TCP].flags.S) if TCP in packet else 0,
-            "tcp.window_size_value": packet[TCP].window if TCP in packet else 0,
             "udp.srcport": packet[UDP].sport if UDP in packet else 0,
             "udp.dstport": packet[UDP].dport if UDP in packet else 0,
             "udp.length": packet[UDP].len if UDP in packet else 0,
@@ -35,7 +34,6 @@ class PacketAnalyzer:
             features["tcp.seq"],
             features["tcp.ack"],
             features["tcp.flags.syn"],
-            features["tcp.window_size_value"],
             features["udp.srcport"],
             features["udp.dstport"],
             features["udp.length"],

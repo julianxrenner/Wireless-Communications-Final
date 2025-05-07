@@ -24,7 +24,7 @@ filename = input("Input a filename or enter '.' to loop through all files: ")
 path = "./edit_pcaps"
 
 if filename == '.':
-    for item in os.listdir(path)[500::]:
+    for item in os.listdir(path)[::]:
         print(item)
         packets = rdpcap(f"./edit_pcaps/{item}")
         sendp(packets, iface=loopback_iface, verbose=True)

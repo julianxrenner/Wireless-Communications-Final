@@ -1,21 +1,33 @@
-from sklearn import tree
-import pandas as pd
-from sklearn.model_selection import train_test_split
+from PacketSniffer import PacketSniffer
+from PacketAnalyzer import PacketAnalyzer
+from DetectionModel import DetectionModel
+from AlertSystem import AlertSystem
 
 class DetectionSystem:
     def __init__(self):
-        self.clf = tree.DecisionTreeClassifier()
-        score = self.train()
+        self.packet_capture = PacketSniffer()
+        self.packet_analyzer = PacketAnalyzer()
+        self.detection_model = DetectionModel()
+        self.alert_system = AlertSystem()
 
+    def run(self):
+        print("Starting Detection System on lo0...")
+        self.packet_capture.start_capture()
 
-    def detect(self, packet):
-      prediction = self.clf.predict([packet])[0]
-      return "Normal" if prediction == 0 else "Malicious"
-    
-    def train(self):
-        data = pd.read_csv('Encoded_SSDP_Dataset.csv')
-        X = data.iloc[:, :-1]
-        y = data.iloc[:, -1]
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-        self.clf.fit(X_train, y_train)
-        
+        while True:
+            try:
+                packet = self.packet_capture.packet_queue.get()
+                processed_packet = self.packet_analyzer.analyze_packets(packet)
+                prediction = self.detection_model.predict(processed_packet)
+                if prediction == "Malicious":
+                    self.alert_system.send_alert(True)
+            except KeyboardInterrupt:
+                print("Stopping Detection System...")
+                self.packet_capture.stop_capture()
+                break
+            except self.packet_capture.packet_queue.empty():
+                continue
+
+if __name__ == "__main__":
+    detection_system = DetectionSystem()
+    detection_system.run()

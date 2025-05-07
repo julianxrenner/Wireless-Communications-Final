@@ -2,7 +2,7 @@ from scapy.all import sniff, IP, TCP, UDP
 import threading
 import queue
 
-class CapturePackets:
+class PacketSniffer:
     def __init__(self):
         self.packet_queue = queue.Queue(maxsize=10000)
         self.stop_capture = threading.Event()

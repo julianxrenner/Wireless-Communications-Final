@@ -17,13 +17,14 @@ class DetectionSystem:
         while True:
             try:
                 packet = self.packet_capture.packet_queue.get()
-                processed_packet = self.packet_analyzer.analyze_packets(packet)
-                prediction = self.detection_model.predict(processed_packet)
+                processed_packet = self.packet_analyzer.process_packet(packet)
+                prediction = self.detection_model.detect(processed_packet)
+                print(prediction)
                 if prediction == "Malicious":
-                    self.alert_system.send_alert(True)
+                    self.alert_system.send_alert()
             except KeyboardInterrupt:
                 print("Stopping Detection System...")
-                self.packet_capture.stop_capture()
+                self.packet_capture.stop()
                 break
             except self.packet_capture.packet_queue.empty():
                 continue

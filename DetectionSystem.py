@@ -1,41 +1,29 @@
-from sklearn import tree
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import accuracy_score
-
+from PacketSniffer import PacketSniffer
+from PacketAnalyzer import PacketAnalyzer
+from DetectionModel import DetectionModel
+from AlertSystem import AlertSystem
 
 class DetectionSystem:
     def __init__(self):
-        self.clf = tree.DecisionTreeClassifier()
+        self.packet_capture = PacketSniffer()
+        self.packet_analyzer = PacketAnalyzer()
+        self.detection_model = DetectionModel()
+        self.alert_system = AlertSystem()
 
-    def detect(self, packet):
-        prediction = self.clf.predict([packet])[0]
-        return "Normal" if prediction == 0 else "Malicious"
+    def run(self):
+        print("Starting Detection System on lo0...")
+        self.packet_capture.start_capture()
 
-    def clean_data(self):
-        df = pd.read_csv("SSDP.csv", low_memory=False)
-
-        features = [
-            "frame.len", "frame.time_epoch", "ip.src", "ip.dst", "ip.proto",
-            "ip.ttl", "tcp.srcport", "tcp.dstport", "tcp.seq", "tcp.ack",
-            "tcp.flags.syn", "tcp.window_size_value", "udp.srcport", "udp.dstport",
-            "udp.length", "Label"
-        ]
-
-        available_features = [col for col in features if col in df.columns]
-        df = df[available_features]
-
-        encoder = LabelEncoder()
-        for col in df.columns:
-            if df[col].dtype == object or col == "Label":
-                df[col] = encoder.fit_transform(df[col].astype(str))
-
-        df.to_csv("SSDP.csv", index=False)
-
-    def train(self):
-        data = pd.read_csv('SSDP.csv')
-        data.fillna(0, inplace=True)
-        X = data.iloc[:, :-1]
-        y = data.iloc[:, -1]
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+        while True:
+            try:
+                packet = self.packet_capture.packet_queue.get()
+                processed_packet = self.packet_analyzer.analyze_packets(packet)
+                prediction = self.detection_model.predict(processed_packet)
+                if prediction == "Malicious":
+                    self.alert_system.alert(packet)
+            except KeyboardInterrupt:
+                print("Stopping Detection System...")
+                self.packet_capture.stop_capture()
+                break
+            except self.packet_capture.packet_queue.empty():
+                continue

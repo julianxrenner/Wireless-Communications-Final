@@ -1,0 +1,29 @@
+from scapy.all import sniff, IP, TCP, UDP
+import threading
+import queue
+
+class CapturePackets:
+    def __init__(self):
+        self.packet_queue = queue.Queue(maxsize=10000)
+        self.stop_capture = threading.Event()
+
+    def packet_callback(self, packet):
+        if IP in packet:
+            self.packet_queue.put(packet)
+
+    def start_capture(self, interface="lo0"):
+        def capture_thread():
+            sniff(
+                iface=interface,
+                prn=self.packet_callback,
+                store=0,
+                timeout=30,
+                stop_filter=lambda _: self.stop_capture.is_set(),
+            )
+
+        self.capture_thread = threading.Thread(target=capture_thread)
+        self.capture_thread.start()
+
+    def stop(self):
+        self.stop_capture.set()
+        self.capture_thread.join()
